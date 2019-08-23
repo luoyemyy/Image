@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="image_picker_gallery_bucket_all">全部图片</string>
+    <string name="image_picker_gallery_bucket_count">共%d张</string>
 </resources>

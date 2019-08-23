@@ -20,12 +20,14 @@ class GalleryFragment : Fragment() {
 
     private lateinit var mBinding: ImagePickerGalleryBinding
     private lateinit var mPresenter: Presenter
+    private lateinit var mBehavior: BottomSheetBehavior<View>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return ImagePickerGalleryBinding.inflate(inflater, container, false).apply { mBinding = this }.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        mBehavior = BottomSheetBehavior.from(mBinding.layoutBucket)
         mPresenter = getPresenter()
         mBinding.apply {
             recyclerView.apply {
@@ -38,16 +40,11 @@ class GalleryFragment : Fragment() {
                 setupLinear(BucketAdapter())
             }
         }
-        bucketVisibe(false)
         requestPermission(this).granted {
             mPresenter.bucketLiveData.loadInit(null)
         }.denied {
 
         }.buildAndRequest(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-
-    private fun bucketVisibe(show: Boolean) {
-        BottomSheetBehavior.from(mBinding.layoutBucket).state = if (show) BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
     }
 
     inner class ImageAdapter : AbsAdapter(this, mPresenter.bucketLiveData.imageLiveData) {
@@ -61,6 +58,10 @@ class GalleryFragment : Fragment() {
         }
 
         override fun enableLoadMore(): Boolean {
+            return false
+        }
+
+        override fun enableInit(): Boolean {
             return false
         }
 
@@ -91,10 +92,13 @@ class GalleryFragment : Fragment() {
         }
 
         override fun onItemViewClick(vh: VH<ViewDataBinding>, view: View) {
-            mPresenter.bucketLiveData.changeBucket(vh.adapterPosition)
-            bucketVisibe(true)
+            if (mBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
+                mBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            } else {
+                mPresenter.bucketLiveData.changeBucket(vh.adapterPosition)
+                mBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            }
         }
-
     }
 
 
@@ -123,7 +127,5 @@ class GalleryFragment : Fragment() {
                 mImageInfo = this
             }
         }
-
-
     }
 }

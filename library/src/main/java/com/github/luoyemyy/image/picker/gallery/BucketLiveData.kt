@@ -31,10 +31,16 @@ class BucketLiveData(private val mApp: Application) : ListLiveData() {
     }
 
     fun changeBucket(position: Int) {
+        var selectPosition = -1
         mBuckets.forEachIndexed { index, bucket ->
-            bucket.select = position == index
+            if (bucket.select) {
+                selectPosition = index
+            }
+            bucket.select = index == position
         }
-        imageLiveData.loadRefresh()
+        if (selectPosition != position) {
+            imageLiveData.loadRefresh()
+        }
     }
 
     override fun onActive() {

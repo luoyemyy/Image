@@ -5,12 +5,13 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black">
+        android:background="#F2F2F2">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
 
         <LinearLayout
             android:id="@+id/layoutBucket"
@@ -18,13 +19,17 @@
             android:layout_height="wrap_content"
             android:background="@android:color/white"
             android:orientation="horizontal"
+            app:behavior_peekHeight="50dp"
             app:elevation="1dp"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewBucket"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </LinearLayout>
+
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
