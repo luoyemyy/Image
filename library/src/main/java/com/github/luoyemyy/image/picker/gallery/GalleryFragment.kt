@@ -28,6 +28,16 @@ class GalleryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mBehavior = BottomSheetBehavior.from(mBinding.layoutBucket)
+        mBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                } else {
+                }
+            }
+        })
         mPresenter = getPresenter()
         mBinding.apply {
             recyclerView.apply {
