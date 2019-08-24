@@ -8,8 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.github.luoyemyy.aclin.ext.hide
+import com.github.luoyemyy.aclin.ext.show
 import com.github.luoyemyy.aclin.mvp.*
 import com.github.luoyemyy.aclin.permission.requestPermission
 import com.github.luoyemyy.image.R
@@ -22,8 +26,13 @@ class GalleryFragment : Fragment() {
     private lateinit var mPresenter: Presenter
     private lateinit var mBehavior: BottomSheetBehavior<View>
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return ImagePickerGalleryBinding.inflate(inflater, container, false).apply { mBinding = this }.root
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return ImagePickerGalleryBinding.inflate(inflater, container, false)
+            .apply { mBinding = this }.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,20 +43,36 @@ class GalleryFragment : Fragment() {
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                } else {
+                    mBinding.layoutBucketStick.show()
                 }
             }
         })
         mPresenter = getPresenter()
+        mPresenter.apply {
+            bucketLiveData.selectBucketLiveData.observe(this@GalleryFragment, Observer {
+                mBinding.entity = it
+            })
+        }
         mBinding.apply {
             recyclerView.apply {
                 adapter = ImageAdapter()
-                layoutManager = StaggeredGridLayoutManager(mPresenter.getImageSpan(), RecyclerView.VERTICAL)
-                addItemDecoration(GridDecoration.create(requireContext(), mPresenter.getImageSpan(), 1))
+                layoutManager =
+                    StaggeredGridLayoutManager(mPresenter.getImageSpan(), RecyclerView.VERTICAL)
+                addItemDecoration(
+                    GridDecoration.create(
+                        requireContext(),
+                        mPresenter.getImageSpan(),
+                        1
+                    )
+                )
             }
 
             recyclerViewBucket.apply {
                 setupLinear(BucketAdapter())
+            }
+            layoutBucketStick.setOnClickListener {
+                it.hide()
+                mBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
         requestPermission(this).granted {
@@ -58,7 +83,12 @@ class GalleryFragment : Fragment() {
     }
 
     inner class ImageAdapter : AbsAdapter(this, mPresenter.bucketLiveData.imageLiveData) {
-        override fun bindContent(binding: ViewDataBinding, item: DataItem, viewType: Int, position: Int) {
+        override fun bindContent(
+            binding: ViewDataBinding,
+            item: DataItem,
+            viewType: Int,
+            position: Int
+        ) {
             binding.setVariable(1, item)
             binding.executePendingBindings()
         }
@@ -71,11 +101,19 @@ class GalleryFragment : Fragment() {
             return false
         }
 
+        override fun enableEmpty(): Boolean {
+            return false
+        }
+
         override fun enableInit(): Boolean {
             return false
         }
 
-        override fun createContentBinding(inflater: LayoutInflater, parent: ViewGroup, viewType: Int): ViewDataBinding? {
+        override fun createContentBinding(
+            inflater: LayoutInflater,
+            parent: ViewGroup,
+            viewType: Int
+        ): ViewDataBinding? {
             return super.createContentBinding(inflater, parent, viewType)?.apply {
                 root.layoutParams.width = mPresenter.getImageSize()
                 root.layoutParams.height = mPresenter.getImageSize()
@@ -84,7 +122,12 @@ class GalleryFragment : Fragment() {
     }
 
     inner class BucketAdapter : AbsAdapter(this, mPresenter.bucketLiveData) {
-        override fun bindContent(binding: ViewDataBinding, item: DataItem, viewType: Int, position: Int) {
+        override fun bindContent(
+            binding: ViewDataBinding,
+            item: DataItem,
+            viewType: Int,
+            position: Int
+        ) {
             binding.setVariable(1, item)
             binding.executePendingBindings()
         }
@@ -102,12 +145,8 @@ class GalleryFragment : Fragment() {
         }
 
         override fun onItemViewClick(vh: VH<ViewDataBinding>, view: View) {
-            if (mBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                mBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-            } else {
-                mPresenter.bucketLiveData.changeBucket(vh.adapterPosition)
-                mBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            }
+            mPresenter.bucketLiveData.changeBucket(vh.adapterPosition)
+            mBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 

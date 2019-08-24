@@ -15,13 +15,20 @@
         android:layout_height="50dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
+        android:paddingStart="8dp"
         android:paddingEnd="16dp">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="@{entity.select}"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
             android:text="@{entity.name}"
             tools:text="全部图片" />
 

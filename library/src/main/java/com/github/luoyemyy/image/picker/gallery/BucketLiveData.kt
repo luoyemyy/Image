@@ -5,6 +5,7 @@ import android.database.ContentObserver
 import android.os.Bundle
 import android.os.Handler
 import android.provider.MediaStore
+import androidx.lifecycle.MutableLiveData
 import com.github.luoyemyy.aclin.mvp.DataItem
 import com.github.luoyemyy.aclin.mvp.ListLiveData
 import com.github.luoyemyy.aclin.mvp.LoadType
@@ -17,8 +18,15 @@ class BucketLiveData(private val mApp: Application) : ListLiveData() {
     private val mBuckets: MutableList<Bucket> = mutableListOf()
     private var mBucketMap: MutableMap<String, Bucket> = mutableMapOf()
 
+    val selectBucketLiveData = MutableLiveData<Bucket>()
+
     val imageLiveData = object : ListLiveData() {
-        override fun loadData(bundle: Bundle?, search: String?, paging: Paging, loadType: LoadType): List<DataItem>? {
+        override fun loadData(
+            bundle: Bundle?,
+            search: String?,
+            paging: Paging,
+            loadType: LoadType
+        ): List<DataItem>? {
             return mBucketMap[getSelectBucketId()]?.images
         }
 
@@ -32,26 +40,42 @@ class BucketLiveData(private val mApp: Application) : ListLiveData() {
 
     fun changeBucket(position: Int) {
         var selectPosition = -1
+        var select: Bucket? = null
         mBuckets.forEachIndexed { index, bucket ->
             if (bucket.select) {
                 selectPosition = index
             }
             bucket.select = index == position
+            if (bucket.select) {
+                select = bucket
+            }
         }
         if (selectPosition != position) {
             imageLiveData.loadRefresh()
         }
+        select?.apply {
+            selectBucketLiveData.value = select
+        }
     }
 
     override fun onActive() {
-        mApp.contentResolver.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, mContentObserver)
+        mApp.contentResolver.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mContentObserver
+        )
     }
 
     override fun onInactive() {
         mApp.contentResolver.unregisterContentObserver(mContentObserver)
     }
 
-    override fun loadData(bundle: Bundle?, search: String?, paging: Paging, loadType: LoadType): List<DataItem>? {
+    override fun loadData(
+        bundle: Bundle?,
+        search: String?,
+        paging: Paging,
+        loadType: LoadType
+    ): List<DataItem>? {
         load(loadType.isInit())
         return mBuckets
     }
@@ -78,7 +102,8 @@ class BucketLiveData(private val mApp: Application) : ListLiveData() {
         mBuckets.clear()
         mBucketMap.clear()
 
-        val bucketAll = Bucket("bucketAll", mApp.getString(R.string.image_picker_gallery_bucket_all))
+        val bucketAll =
+            Bucket("bucketAll", mApp.getString(R.string.image_picker_gallery_bucket_all))
         mBuckets.add(bucketAll)
         mBucketMap[bucketAll.id] = bucketAll
 
@@ -103,6 +128,7 @@ class BucketLiveData(private val mApp: Application) : ListLiveData() {
 
         if (init) {
             bucketAll.select = true
+            selectBucketLiveData.postValue(bucketAll)
         }
     }
 }
